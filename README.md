@@ -16,68 +16,65 @@
 ## 로컬 실행
 
 ```bash
-# 1. 의존성 설치
 pip install -r requirements.txt
-
-# 2. 실행
 python app.py
 ```
 
-브라우저에서 http://localhost:5000 접속
+→ http://localhost:5000
 
 ## GitHub에 올리기
-
-1. 새 저장소 생성 (예: `portfolio-tracker`)
-2. 이 폴더 내용을 전부 업로드 (또는 git push)
 
 ```bash
 git init
 git add .
-git commit -m "Initial commit: portfolio real-time tracker"
+git commit -m "portfolio real-time tracker"
 git branch -M main
-git remote add origin https://github.com/본인아이디/portfolio-tracker.git
+git remote add origin https://github.com/본인아이디/저장소이름.git
 git push -u origin main
 ```
 
-## Render.com에 배포하기 (추천)
+## Render.com 배포 (중요 설정)
 
-1. [Render.com](https://render.com) 가입 (GitHub 연동)
-2. **New → Web Service**
-3. GitHub 저장소 연결
-4. 설정:
-   - **Name**: `portfolio-tracker` (원하는 이름)
-   - **Runtime**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app`
-   - **Instance Type**: Free
-5. **Create Web Service** 클릭
+1. [render.com](https://render.com) 가입 후 GitHub 연동
+2. **New → Web Service** → 저장소 선택
+3. **반드시 아래처럼 설정**하세요:
 
-배포가 끝나면 `https://포트폴리오이름.onrender.com` 주소가 생성됩니다.
+| 항목 | 값 |
+|------|-----|
+| **Name** | 원하는 이름 (예: portfolio-tracker) |
+| **Region** | Oregon (US West) 또는 Singapore |
+| **Runtime** | Python 3 |
+| **Build Command** | `pip install -r requirements.txt` |
+| **Start Command** | `gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120` |
+| **Instance Type** | Free |
 
-> Free 플랜은 15분 동안 요청이 없으면 슬립 상태로 들어갑니다.  
-> 처음 접속 시 30초 정도 걸릴 수 있습니다.
+4. **Advanced** → Add Environment Variable (선택):
+   - Key: `PYTHON_VERSION`  Value: `3.12.0`
 
-## Railway / Fly.io 등에도 동일하게 배포 가능
+5. **Create Web Service**
 
-Start Command만 `gunicorn app:app` 으로 설정하면 됩니다.
+### 배포 후 확인
 
-## API
+- 메인 페이지: `https://서비스이름.onrender.com`
+- 헬스체크: `https://서비스이름.onrender.com/api/health`
+- 시세 API: `https://서비스이름.onrender.com/api/quotes?symbols=QLD,SOXL`
+
+> Free 플랜은 15분 동안 요청이 없으면 슬립합니다.  
+> 처음 접속 시 30초~1분 정도 걸릴 수 있습니다.
+
+### Internal Server Error 가 날 때
+
+1. Render 대시보드 → 해당 서비스 → **Logs** 탭을 확인하세요.
+2. Start Command가 위에 적은 것과 **정확히 같은지** 다시 확인하세요.  
+   (`$PORT`가 빠져 있으면 거의 항상 에러가 납니다)
+3. Build가 성공했는지 확인하세요.
+
+## API 예시
 
 ```
 GET /api/quotes?symbols=QLD,SPYM,TQQQ
 ```
 
-응답 예시:
-
-```json
-{
-  "quotes": {
-    "QLD": { "ticker": "QLD", "price": 89.44, "currency": "USD", "name": "...", "error": null }
-  },
-  "fetched_at": "2026-08-20 14:30:00 UTC"
-}
-```
-
 ## 라이선스
 
-MIT – 자유롭게 사용·수정하세요.
+MIT
