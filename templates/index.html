@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>포트폴리오 실시간 시세</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --border: #2a3548;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --green: #00c853;
+      --red: #ff5252;
+      --accent: #4fc3f7;
+      --input-bg: #0d1219;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    h1 { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em; }
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #1e2a3a;
+      font-size: 0.8rem;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 1.5s infinite;
+    }
+    .dot.error { background: var(--red); animation: none; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    button {
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.88rem;
+      padding: 8px 14px;
+      transition: filter 0.15s;
+    }
+    button:hover { filter: brightness(1.12); }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    .btn-primary { background: var(--accent); color: #0a0e14; }
+    .btn-secondary { background: #2a3a4f; color: var(--text); }
+    .btn-danger { background: #3d1f24; color: #ff8a80; }
+    .btn-success { background: #1b3a2a; color: #69f0ae; }
+    .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .pairs { display: flex; flex-direction: column; gap: 18px; }
+    .pair-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .pair-header {
+      padding: 12px 16px;
+      background: #15202b;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pair-title-input {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--text);
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 4px 8px;
+      width: min(260px, 100%);
+    }
+    .pair-title-input:hover, .pair-title-input:focus {
+      border-color: var(--border);
+      background: var(--input-bg);
+      outline: none;
+    }
+    .pair-diff {
+      font-size: 0.9rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .pair-diff.pos { color: var(--green); }
+    .pair-diff.neg { color: var(--red); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    input.ticker, input.shares {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 6px 10px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      width: 100%;
+      max-width: 110px;
+      font-family: inherit;
+    }
+    input.ticker { text-transform: uppercase; letter-spacing: 0.03em; color: var(--accent); }
+    input.shares { max-width: 100px; }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.25);
+    }
+
+    .price { font-weight: 600; }
+    .weight-bar {
+      height: 6px;
+      background: #243044;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+      max-width: 90px;
+    }
+    .weight-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4fc3f7, #81d4fa);
+      border-radius: 3px;
+      transition: width 0.35s ease;
+    }
+    .error-msg { color: var(--red); font-size: 0.85rem; }
+
+    .summary {
+      margin-top: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+    }
+    .summary-item label {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .summary-item .value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    footer {
+      margin-top: 28px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 640px) {
+      th:nth-child(5), td:nth-child(5) { display: none; }
+      input.ticker, input.shares { max-width: 90px; }
+      h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📊 포트폴리오 실시간 시세</h1>
+      <div class="meta">
+        <span class="status" id="status">
+          <span class="dot" id="statusDot"></span>
+          <span id="statusText">준비됨</span>
+        </span>
+        <span id="lastUpdate">—</span>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <button class="btn-primary" id="refreshBtn" onclick="loadPrices()">시세 새로고침</button>
+      <button class="btn-success" onclick="addPair()">+ 페어 추가</button>
+      <button class="btn-secondary" onclick="saveLocal()">저장</button>
+      <button class="btn-secondary" onclick="resetDefault()">기본값 복원</button>
+      <span class="hint">티커·수량 입력 후 Enter 또는 새로고침</span>
+    </div>
+
+    <div class="pairs" id="pairs"></div>
+
+    <div class="summary">
+      <div class="summary-item">
+        <label>총 평가금액</label>
+        <div class="value" id="totalValue">—</div>
+      </div>
+      <div class="summary-item">
+        <label>페어 수</label>
+        <div class="value" id="pairCount">0</div>
+      </div>
+      <div class="summary-item">
+        <label>데이터 소스</label>
+        <div class="value" style="font-size:0.95rem">Yahoo Finance</div>
+      </div>
+    </div>
+
+    <footer>
+      티커와 수량을 직접 수정할 수 있습니다. 변경 후 「시세 새로고침」을 누르세요.<br>
+      「저장」을 누르면 브라우저에 설정이 보관됩니다.<br>
+      서버가 Yahoo Finance에서 시세를 가져와 CORS 문제 없이 동작합니다.
+    </footer>
+  </div>
+
+  <script>
+    const DEFAULT_PORTFOLIO = [
+      {
+        name: "페어 1 · QLD / SPYM",
+        positions: [
+          { ticker: "QLD",  shares: 721 },
+          { ticker: "SPYM", shares: 742 }
+        ]
+      },
+      {
+        name: "페어 2 · TQQQ / SPYV",
+        positions: [
+          { ticker: "TQQQ", shares: 162 },
+          { ticker: "SPYV", shares: 188 }
+        ]
+      },
+      {
+        name: "페어 3 · BULZ / IQQ",
+        positions: [
+          { ticker: "BULZ", shares: 410 },
+          { ticker: "IQQ",  shares: 609 }
+        ]
+      },
+      {
+        name: "페어 4 · SOXL / SCHG",
+        positions: [
+          { ticker: "SOXL", shares: 161 },
+          { ticker: "SCHG", shares: 563 }
+        ]
+      }
+    ];
+
+    let portfolio = JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO));
+    let priceCache = {};
+
+    try {
+      const saved = localStorage.getItem("portfolio_v1");
+      if (saved) portfolio = JSON.parse(saved);
+    } catch (e) {}
+
+    function fmt(n, digits = 2) {
+      if (n == null || isNaN(n)) return "—";
+      return Number(n).toLocaleString("en-US", {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      });
+    }
+
+    function fmtMoney(n) {
+      if (n == null || isNaN(n)) return "—";
+      return "$" + Number(n).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    async function fetchPrices(tickers) {
+      if (!tickers.length) return {};
+      const url = "/api/quotes?symbols=" + encodeURIComponent(tickers.join(","));
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const map = {};
+        for (const [t, q] of Object.entries(data.quotes || {})) {
+          if (q.price != null) {
+            map[t] = q.price;
+            priceCache[t] = q.price;
+          }
+        }
+        return map;
+      } catch (e) {
+        console.error(e);
+        return {};
+      }
+    }
+
+    function readFormIntoPortfolio() {
+      const cards = document.querySelectorAll(".pair-card");
+      const newPortfolio = [];
+      cards.forEach((card, pi) => {
+        const nameInput = card.querySelector(".pair-title-input");
+        const name = nameInput ? nameInput.value.trim() : `페어 ${pi + 1}`;
+        const rows = card.querySelectorAll("tbody tr");
+        const positions = [];
+        rows.forEach(row => {
+          const tickerEl = row.querySelector("input.ticker");
+          const sharesEl = row.querySelector("input.shares");
+          if (!tickerEl) return;
+          const ticker = (tickerEl.value || "").trim().toUpperCase();
+          const shares = parseFloat(sharesEl.value) || 0;
+          if (ticker) positions.push({ ticker, shares });
+        });
+        if (positions.length > 0) newPortfolio.push({ name, positions });
+      });
+      portfolio = newPortfolio;
+    }
+
+    function render() {
+      const pairsEl = document.getElementById("pairs");
+      pairsEl.innerHTML = "";
+
+      let totalValue = 0;
+
+      portfolio.forEach((pair, pi) => {
+        const posData = pair.positions.map(p => {
+          const price = priceCache[p.ticker.toUpperCase()] ?? null;
+          const value = price != null ? price * p.shares : null;
+          if (value != null) totalValue += value;
+          return { ...p, price, value };
+        });
+
+        const sumValue = posData.reduce((s, x) => s + (x.value || 0), 0);
+        const diff = posData.length >= 2
+          ? (posData[0].value || 0) - (posData[1].value || 0)
+          : 0;
+
+        const card = document.createElement("div");
+        card.className = "pair-card";
+
+        card.innerHTML = `
+          <div class="pair-header">
+            <input class="pair-title-input" value="${escapeHtml(pair.name)}"
+                   onchange="onNameChange(${pi}, this.value)" />
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span class="pair-diff ${diff >= 0 ? "pos" : "neg"}">
+                차이: ${diff >= 0 ? "+" : ""}${fmtMoney(diff)}
+                <span style="opacity:0.7;font-size:0.85em"> (½: ${fmtMoney(diff/2)})</span>
+              </span>
+              <button class="btn-sm btn-secondary" onclick="addPosition(${pi})">+ 종목</button>
+              <button class="btn-sm btn-danger" onclick="removePair(${pi})">삭제</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>티커</th>
+                <th>현재가</th>
+                <th>수량</th>
+                <th>평가금액</th>
+                <th>비중</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${posData.map((p, si) => {
+                const weight = sumValue > 0 && p.value != null ? (p.value / sumValue) : 0;
+                return `
+                  <tr>
+                    <td>
+                      <input class="ticker" value="${escapeHtml(p.ticker)}"
+                             onchange="onTickerChange(${pi},${si},this.value)"
+                             onkeydown="if(event.key==='Enter')loadPrices()" />
+                    </td>
+                    <td class="price">
+                      ${p.price != null ? "$" + fmt(p.price) : '<span class="error-msg">—</span>'}
+                    </td>
+                    <td>
+                      <input class="shares" type="number" min="0" step="1" value="${p.shares}"
+                             onchange="onSharesChange(${pi},${si},this.value)"
+                             onkeydown="if(event.key==='Enter')loadPrices()" />
+                    </td>
+                    <td>${fmtMoney(p.value)}</td>
+                    <td>
+                      ${(weight * 100).toFixed(2)}%
+                      <div class="weight-bar"><div class="weight-fill" style="width:${(weight*100).toFixed(1)}%"></div></div>
+                    </td>
+                    <td>
+                      <button class="btn-sm btn-danger" onclick="removePosition(${pi},${si})" title="삭제">✕</button>
+                    </td>
+                  </tr>`;
+              }).join("")}
+            </tbody>
+          </table>
+        `;
+        pairsEl.appendChild(card);
+      });
+
+      document.getElementById("totalValue").textContent = fmtMoney(totalValue);
+      document.getElementById("pairCount").textContent = portfolio.length;
+    }
+
+    function onNameChange(pi, val) {
+      if (portfolio[pi]) portfolio[pi].name = val;
+    }
+    function onTickerChange(pi, si, val) {
+      if (portfolio[pi]?.positions[si]) {
+        portfolio[pi].positions[si].ticker = val.trim().toUpperCase();
+      }
+    }
+    function onSharesChange(pi, si, val) {
+      if (portfolio[pi]?.positions[si]) {
+        portfolio[pi].positions[si].shares = parseFloat(val) || 0;
+      }
+    }
+
+    function addPair() {
+      readFormIntoPortfolio();
+      portfolio.push({
+        name: `페어 ${portfolio.length + 1}`,
+        positions: [
+          { ticker: "", shares: 0 },
+          { ticker: "", shares: 0 }
+        ]
+      });
+      render();
+    }
+
+    function removePair(pi) {
+      readFormIntoPortfolio();
+      portfolio.splice(pi, 1);
+      render();
+      loadPrices();
+    }
+
+    function addPosition(pi) {
+      readFormIntoPortfolio();
+      if (portfolio[pi]) {
+        portfolio[pi].positions.push({ ticker: "", shares: 0 });
+        render();
+      }
+    }
+
+    function removePosition(pi, si) {
+      readFormIntoPortfolio();
+      if (portfolio[pi]?.positions.length > 1) {
+        portfolio[pi].positions.splice(si, 1);
+        render();
+        loadPrices();
+      } else {
+        alert("페어에는 최소 1개 종목이 필요합니다.");
+      }
+    }
+
+    function saveLocal() {
+      readFormIntoPortfolio();
+      try {
+        localStorage.setItem("portfolio_v1", JSON.stringify(portfolio));
+        alert("브라우저에 저장되었습니다.");
+      } catch (e) {
+        alert("저장 실패: " + e.message);
+      }
+    }
+
+    function resetDefault() {
+      if (!confirm("기본 포트폴리오로 되돌리시겠습니까?")) return;
+      portfolio = JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO));
+      localStorage.removeItem("portfolio_v1");
+      priceCache = {};
+      render();
+      loadPrices();
+    }
+
+    async function loadPrices() {
+      readFormIntoPortfolio();
+      const btn = document.getElementById("refreshBtn");
+      const statusText = document.getElementById("statusText");
+      const statusDot = document.getElementById("statusDot");
+      btn.disabled = true;
+      statusText.textContent = "시세 조회 중…";
+      statusDot.classList.remove("error");
+
+      const tickers = [...new Set(
+        portfolio.flatMap(p => p.positions.map(x => x.ticker.trim().toUpperCase()).filter(Boolean))
+      )];
+
+      const map = await fetchPrices(tickers);
+      const success = Object.keys(map).length;
+
+      render();
+
+      document.getElementById("lastUpdate").textContent =
+        "마지막 갱신: " + new Date().toLocaleString("ko-KR");
+      statusText.textContent = success > 0
+        ? `조회 완료 (${success}/${tickers.length})`
+        : (tickers.length ? "조회 실패" : "티커를 입력하세요");
+      if (success === 0 && tickers.length > 0) statusDot.classList.add("error");
+      btn.disabled = false;
+    }
+
+    render();
+    loadPrices();
+    // 60초마다 자동 갱신
+    setInterval(loadPrices, 60000);
+  </script>
+</body>
+</html>
