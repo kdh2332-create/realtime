@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>포트폴리오 실시간 시세</title>
   <style>
     :root {
@@ -22,7 +22,8 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 24px 16px 48px;
+      padding: 12px 10px 32px;
+      font-size: 14px;
     }
     .container { max-width: 980px; margin: 0 auto; }
     header {
@@ -30,29 +31,29 @@
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
-    h1 { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em; }
+    h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
     .meta {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 0.85rem;
+      gap: 8px;
+      font-size: 0.75rem;
       color: var(--muted);
       flex-wrap: wrap;
     }
     .status {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
+      gap: 5px;
+      padding: 3px 8px;
       border-radius: 999px;
       background: #1e2a3a;
-      font-size: 0.8rem;
+      font-size: 0.72rem;
     }
     .dot {
-      width: 8px; height: 8px;
+      width: 7px; height: 7px;
       border-radius: 50%;
       background: var(--green);
       animation: pulse 1.5s infinite;
@@ -64,11 +65,11 @@
     }
     button {
       border: none;
-      border-radius: 8px;
+      border-radius: 7px;
       font-weight: 600;
       cursor: pointer;
-      font-size: 0.88rem;
-      padding: 8px 14px;
+      font-size: 0.78rem;
+      padding: 7px 11px;
       transition: filter 0.15s;
     }
     button:hover { filter: brightness(1.12); }
@@ -77,68 +78,95 @@
     .btn-secondary { background: #2a3a4f; color: var(--text); }
     .btn-danger { background: #3d1f24; color: #ff8a80; }
     .btn-success { background: #1b3a2a; color: #69f0ae; }
-    .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+    .btn-sm { padding: 4px 8px; font-size: 0.72rem; }
 
     .toolbar {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 20px;
+      gap: 6px;
+      margin-bottom: 12px;
       align-items: center;
     }
+    .hint { font-size: 0.7rem; color: var(--muted); }
 
-    .pairs { display: flex; flex-direction: column; gap: 18px; }
+    .pairs { display: flex; flex-direction: column; gap: 12px; }
     .pair-card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
     }
     .pair-header {
-      padding: 12px 16px;
+      padding: 10px 12px;
       background: #15202b;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
+    }
+    .pair-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+    .pair-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
     }
     .pair-title-input {
       background: transparent;
       border: 1px solid transparent;
-      border-radius: 6px;
+      border-radius: 5px;
       color: var(--text);
       font-weight: 600;
-      font-size: 1rem;
-      padding: 4px 8px;
-      width: min(260px, 100%);
+      font-size: 0.88rem;
+      padding: 2px 4px;
+      max-width: 160px;
     }
     .pair-title-input:hover, .pair-title-input:focus {
       border-color: var(--border);
       background: var(--input-bg);
       outline: none;
     }
-    .pair-diff {
-      font-size: 0.9rem;
+    .pair-weights {
+      font-size: 0.72rem;
+      color: var(--muted);
       font-variant-numeric: tabular-nums;
+    }
+    .pair-weights b { color: var(--accent); font-weight: 600; }
+    .pair-diff {
+      font-size: 0.78rem;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
     .pair-diff.pos { color: var(--green); }
     .pair-diff.neg { color: var(--red); }
+    .pair-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
 
-    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
     th {
       text-align: left;
-      padding: 10px 12px;
+      padding: 7px 8px;
       color: var(--muted);
       font-weight: 500;
-      font-size: 0.75rem;
+      font-size: 0.65rem;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.03em;
       border-bottom: 1px solid var(--border);
     }
     td {
-      padding: 10px 12px;
+      padding: 7px 8px;
       border-bottom: 1px solid var(--border);
       font-variant-numeric: tabular-nums;
       vertical-align: middle;
@@ -148,81 +176,95 @@
     input.ticker, input.shares {
       background: var(--input-bg);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 5px;
       color: var(--text);
-      padding: 6px 10px;
-      font-size: 0.92rem;
+      padding: 5px 6px;
+      font-size: 0.8rem;
       font-weight: 600;
       width: 100%;
-      max-width: 110px;
       font-family: inherit;
     }
-    input.ticker { text-transform: uppercase; letter-spacing: 0.03em; color: var(--accent); }
-    input.shares { max-width: 100px; }
+    input.ticker {
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: var(--accent);
+      min-width: 64px;
+      max-width: 90px;
+    }
+    input.shares {
+      min-width: 52px;
+      max-width: 72px;
+    }
     input:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.25);
     }
 
-    .price { font-weight: 600; }
+    .price { font-weight: 600; white-space: nowrap; }
     .weight-bar {
-      height: 6px;
+      height: 4px;
       background: #243044;
-      border-radius: 3px;
+      border-radius: 2px;
       overflow: hidden;
-      margin-top: 4px;
-      max-width: 90px;
+      margin-top: 3px;
+      max-width: 70px;
     }
     .weight-fill {
       height: 100%;
       background: linear-gradient(90deg, #4fc3f7, #81d4fa);
-      border-radius: 3px;
+      border-radius: 2px;
       transition: width 0.35s ease;
     }
-    .error-msg { color: var(--red); font-size: 0.85rem; }
+    .error-msg { color: var(--red); font-size: 0.75rem; }
 
     .summary {
-      margin-top: 24px;
+      margin-top: 16px;
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px 20px;
+      border-radius: 12px;
+      padding: 12px 14px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
     }
     .summary-item label {
       display: block;
-      font-size: 0.72rem;
+      font-size: 0.65rem;
       color: var(--muted);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.03em;
     }
     .summary-item .value {
-      font-size: 1.2rem;
+      font-size: 1rem;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
 
     footer {
-      margin-top: 28px;
+      margin-top: 20px;
       text-align: center;
-      font-size: 0.8rem;
+      font-size: 0.7rem;
       color: var(--muted);
-      line-height: 1.55;
+      line-height: 1.5;
     }
 
-    .hint {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    @media (max-width: 640px) {
-      th:nth-child(5), td:nth-child(5) { display: none; }
-      input.ticker, input.shares { max-width: 90px; }
-      h1 { font-size: 1.2rem; }
+    /* 모바일 최적화 */
+    @media (max-width: 480px) {
+      body { padding: 8px 6px 24px; font-size: 13px; }
+      h1 { font-size: 1.05rem; }
+      .pair-title-input { font-size: 0.82rem; max-width: 140px; }
+      .pair-weights { font-size: 0.68rem; }
+      .pair-diff { font-size: 0.72rem; }
+      table { font-size: 0.75rem; }
+      th, td { padding: 6px 5px; }
+      input.ticker { min-width: 58px; max-width: 78px; font-size: 0.75rem; }
+      input.shares { min-width: 48px; max-width: 62px; font-size: 0.75rem; }
+      .summary { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .summary-item .value { font-size: 0.95rem; }
+      /* 비중 컬럼은 모바일에서도 유지하되 좁게 */
+      th:nth-child(5), td:nth-child(5) { max-width: 56px; }
     }
   </style>
 </head>
@@ -244,7 +286,6 @@
       <button class="btn-success" onclick="addPair()">+ 페어 추가</button>
       <button class="btn-secondary" onclick="saveLocal()">저장</button>
       <button class="btn-secondary" onclick="resetDefault()">기본값 복원</button>
-      <span class="hint">티커·수량 입력 후 Enter 또는 새로고침</span>
     </div>
 
     <div class="pairs" id="pairs"></div>
@@ -260,14 +301,12 @@
       </div>
       <div class="summary-item">
         <label>데이터 소스</label>
-        <div class="value" style="font-size:0.95rem">Yahoo Finance</div>
+        <div class="value" style="font-size:0.85rem">Yahoo Finance</div>
       </div>
     </div>
 
     <footer>
-      티커와 수량을 직접 수정할 수 있습니다. 변경 후 「시세 새로고침」을 누르세요.<br>
-      「저장」을 누르면 브라우저에 설정이 보관됩니다.<br>
-      서버가 Yahoo Finance에서 시세를 가져와 CORS 문제 없이 동작합니다.
+      티커·수량 수정 후 「시세 새로고침」을 누르세요. 「저장」으로 브라우저에 보관됩니다.
     </footer>
   </div>
 
@@ -396,17 +435,28 @@
           ? (posData[0].value || 0) - (posData[1].value || 0)
           : 0;
 
+        // 비중 문자열 (페어 제목 옆)
+        const weightStrs = posData.map(p => {
+          const w = sumValue > 0 && p.value != null ? (p.value / sumValue * 100) : 0;
+          return `<b>${escapeHtml(p.ticker)}</b> ${w.toFixed(1)}%`;
+        }).join(" · ");
+
         const card = document.createElement("div");
         card.className = "pair-card";
 
         card.innerHTML = `
           <div class="pair-header">
-            <input class="pair-title-input" value="${escapeHtml(pair.name)}"
-                   onchange="onNameChange(${pi}, this.value)" />
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div class="pair-left">
+              <div class="pair-title-row">
+                <input class="pair-title-input" value="${escapeHtml(pair.name)}"
+                       onchange="onNameChange(${pi}, this.value)" />
+              </div>
+              <div class="pair-weights">${weightStrs}</div>
+            </div>
+            <div class="pair-actions">
               <span class="pair-diff ${diff >= 0 ? "pos" : "neg"}">
                 차이: ${diff >= 0 ? "+" : ""}${fmtMoney(diff)}
-                <span style="opacity:0.7;font-size:0.85em"> (½: ${fmtMoney(diff/2)})</span>
+                <span style="opacity:0.7">(½: ${fmtMoney(diff/2)})</span>
               </span>
               <button class="btn-sm btn-secondary" onclick="addPosition(${pi})">+ 종목</button>
               <button class="btn-sm btn-danger" onclick="removePair(${pi})">삭제</button>
@@ -443,7 +493,7 @@
                     </td>
                     <td>${fmtMoney(p.value)}</td>
                     <td>
-                      ${(weight * 100).toFixed(2)}%
+                      ${(weight * 100).toFixed(1)}%
                       <div class="weight-bar"><div class="weight-fill" style="width:${(weight*100).toFixed(1)}%"></div></div>
                     </td>
                     <td>
@@ -561,7 +611,6 @@
 
     render();
     loadPrices();
-    // 60초마다 자동 갱신
     setInterval(loadPrices, 60000);
   </script>
 </body>
