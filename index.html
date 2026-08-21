@@ -406,8 +406,6 @@
       const cards = document.querySelectorAll(".pair-card");
       const newPortfolio = [];
       cards.forEach((card, pi) => {
-        const nameInput = card.querySelector(".pair-title-input");
-        const name = nameInput ? nameInput.value.trim() : `페어 ${pi + 1}`;
         const rows = card.querySelectorAll("tbody tr");
         const positions = [];
         rows.forEach(row => {
@@ -418,6 +416,11 @@
           const shares = parseFloat(sharesEl.value) || 0;
           if (ticker) positions.push({ ticker, shares });
         });
+        // 제목은 티커 기준으로 자동 생성
+        const tickers = positions.map(p => p.ticker).filter(Boolean);
+        const name = tickers.length
+          ? `페어 ${pi + 1} · ${tickers.join(" / ")}`
+          : `페어 ${pi + 1}`;
         if (positions.length > 0) newPortfolio.push({ name, positions });
       });
       portfolio = newPortfolio;
@@ -526,6 +529,22 @@
     function onTickerChange(pi, si, val) {
       if (portfolio[pi]?.positions[si]) {
         portfolio[pi].positions[si].ticker = val.trim().toUpperCase();
+        // 티커 변경 시 페어 제목 자동 갱신
+        autoUpdatePairName(pi);
+        render();
+      }
+    }
+
+    function autoUpdatePairName(pi) {
+      if (!portfolio[pi]) return;
+      const tickers = portfolio[pi].positions
+        .map(p => (p.ticker || "").trim().toUpperCase())
+        .filter(Boolean);
+      const prefix = `페어 ${pi + 1}`;
+      if (tickers.length === 0) {
+        portfolio[pi].name = prefix;
+      } else {
+        portfolio[pi].name = `${prefix} · ${tickers.join(" / ")}`;
       }
     }
     function onSharesChange(pi, si, val) {
@@ -557,6 +576,7 @@
       readFormIntoPortfolio();
       if (portfolio[pi]) {
         portfolio[pi].positions.push({ ticker: "", shares: 0 });
+        autoUpdatePairName(pi);
         render();
       }
     }
@@ -565,6 +585,7 @@
       readFormIntoPortfolio();
       if (portfolio[pi]?.positions.length > 1) {
         portfolio[pi].positions.splice(si, 1);
+        autoUpdatePairName(pi);
         render();
         loadPrices();
       } else {
