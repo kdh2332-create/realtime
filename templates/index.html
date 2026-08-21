@@ -101,10 +101,15 @@
       background: #15202b;
       border-bottom: 1px solid var(--border);
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 6px;
+    }
+    .pair-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     .pair-left {
       display: flex;
@@ -127,7 +132,8 @@
       font-weight: 600;
       font-size: 0.88rem;
       padding: 2px 4px;
-      max-width: 160px;
+      max-width: 200px;
+      width: auto;
     }
     .pair-title-input:hover, .pair-title-input:focus {
       border-color: var(--border);
@@ -144,6 +150,7 @@
       font-size: 0.78rem;
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
+      flex-shrink: 0;
     }
     .pair-diff.pos { color: var(--green); }
     .pair-diff.neg { color: var(--red); }
@@ -188,8 +195,8 @@
       text-transform: uppercase;
       letter-spacing: 0.02em;
       color: var(--accent);
-      min-width: 64px;
-      max-width: 90px;
+      min-width: 52px;
+      max-width: 72px;
     }
     input.shares {
       min-width: 52px;
@@ -259,7 +266,7 @@
       .pair-diff { font-size: 0.72rem; }
       table { font-size: 0.75rem; }
       th, td { padding: 6px 5px; }
-      input.ticker { min-width: 58px; max-width: 78px; font-size: 0.75rem; }
+      input.ticker { min-width: 48px; max-width: 64px; font-size: 0.75rem; }
       input.shares { min-width: 48px; max-width: 62px; font-size: 0.75rem; }
       .summary { grid-template-columns: 1fr 1fr; gap: 8px; }
       .summary-item .value { font-size: 0.95rem; }
@@ -438,7 +445,7 @@
         // 비중 문자열 (페어 제목 옆)
         const weightStrs = posData.map(p => {
           const w = sumValue > 0 && p.value != null ? (p.value / sumValue * 100) : 0;
-          return `<b>${escapeHtml(p.ticker)}</b> ${w.toFixed(1)}%`;
+          return `<b>${escapeHtml(p.ticker)}</b> ${w.toFixed(2)}%`;
         }).join(" · ");
 
         const card = document.createElement("div");
@@ -446,20 +453,22 @@
 
         card.innerHTML = `
           <div class="pair-header">
-            <div class="pair-left">
-              <div class="pair-title-row">
-                <input class="pair-title-input" value="${escapeHtml(pair.name)}"
-                       onchange="onNameChange(${pi}, this.value)" />
+            <div class="pair-top">
+              <div class="pair-left">
+                <div class="pair-title-row">
+                  <input class="pair-title-input" value="${escapeHtml(pair.name)}"
+                         onchange="onNameChange(${pi}, this.value)" />
+                </div>
+                <div class="pair-weights">${weightStrs}</div>
               </div>
-              <div class="pair-weights">${weightStrs}</div>
+              <div class="pair-actions">
+                <button class="btn-sm btn-secondary" onclick="addPosition(${pi})">+ 종목</button>
+                <button class="btn-sm btn-danger" onclick="removePair(${pi})">삭제</button>
+              </div>
             </div>
-            <div class="pair-actions">
-              <span class="pair-diff ${diff >= 0 ? "pos" : "neg"}">
-                차이: ${diff >= 0 ? "+" : ""}${fmtMoney(diff)}
-                <span style="opacity:0.7">(½: ${fmtMoney(diff/2)})</span>
-              </span>
-              <button class="btn-sm btn-secondary" onclick="addPosition(${pi})">+ 종목</button>
-              <button class="btn-sm btn-danger" onclick="removePair(${pi})">삭제</button>
+            <div class="pair-diff ${diff >= 0 ? "pos" : "neg"}">
+              차이: ${diff >= 0 ? "+" : ""}${fmtMoney(diff)}
+              <span style="opacity:0.7">(½: ${fmtMoney(diff/2)})</span>
             </div>
           </div>
           <table>
@@ -493,8 +502,8 @@
                     </td>
                     <td>${fmtMoney(p.value)}</td>
                     <td>
-                      ${(weight * 100).toFixed(1)}%
-                      <div class="weight-bar"><div class="weight-fill" style="width:${(weight*100).toFixed(1)}%"></div></div>
+                      ${(weight * 100).toFixed(2)}%
+                      <div class="weight-bar"><div class="weight-fill" style="width:${(weight*100).toFixed(2)}%"></div></div>
                     </td>
                     <td>
                       <button class="btn-sm btn-danger" onclick="removePosition(${pi},${si})" title="삭제">✕</button>
